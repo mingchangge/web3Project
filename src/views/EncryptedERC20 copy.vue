@@ -3,7 +3,7 @@
     <h1 style="margin: 10px 0 20px">区块链测试</h1>
     <el-container style="height: 600px; border: 1px solid #eee">
       <el-aside width="200px" style="padding: 10px; background-color: rgb(238 241 246)">
-        <el-steps direction="vertical" :process-status="processStatus" :active="active">
+        <el-steps direction="vertical" :active="active">
           <el-step title="部署合约" @click="clickFn(1)"></el-step>
           <el-step title="铸币" @click="clickFn(2)"></el-step>
           <el-step title="转账和查询" @click="clickFn(3)"></el-step>
@@ -12,20 +12,13 @@
       <el-container>
         <el-main>
           <!-- 合约部署 -->
-          <div
-            v-show="active == 0 || active == 1"
-            v-loading="loading"
-            element-loading-text="合约部署中"
-          >
+          <div v-show="active == 1" v-loading="loading" element-loading-text="合约部署中">
             <el-alert
-              v-show="!loading && active == 1"
+              v-show="!loading"
               title="发送者合约部署成功"
               type="success"
               :closable="false"
             />
-            <el-button type="primary" @click="deployContract('Deposit', 'RMB')">
-              重新部署合约
-            </el-button>
           </div>
           <!-- 铸币 -->
           <div v-show="active == 2">
@@ -39,11 +32,10 @@
                 </el-button>
               </el-form-item>
             </el-form>
-            <p>总供应量: {{ totalSupply }}</p>
+            <p>发送者现存余额: {{ senderBalance }}</p>
           </div>
           <!-- 查询 -->
           <div v-show="active == 3">
-            <div style="margin: 20px 0">已连接钱包：{{ walletAddress }}</div>
             <el-row>
               <el-col :span="24">
                 <el-form inline label-width="80px" :model="transferForm">
@@ -76,7 +68,7 @@
 <script setup>
 import { ref, onMounted, reactive } from 'vue'
 import EncryptedERC20 from '../../contracts/EncryptedERC20.json'
-import { JsonRpcProvider, Mnemonic, Wallet, HDNodeWallet, ContractFactory, Contract } from 'ethers'
+import { JsonRpcProvider, Mnemonic, HDNodeWallet, ContractFactory, Contract } from 'ethers'
 import { init, createFhevmInstance, generatePublicKey } from '@/utils/fhevmjs'
 // Only Node requries Buffer module
 import { Buffer } from 'buffer'
@@ -88,7 +80,6 @@ const provider = new JsonRpcProvider(url)
 
 let loading = ref(false)
 let active = ref(undefined)
-let processStatus = ref('process')
 //发送者
 let senderSigner
 let senderInstance
@@ -103,23 +94,20 @@ let transferForm = reactive({
   address: '0x864eAADAffc661fa46c2F11f9d937E9b8FEA25D0'
 })
 let transferring = ref(false)
-let totalSupply = ref(0)
 //接收者
 let receiverSigner
 let receiverInstance
 let receiverBalance = ref(0)
-let walletAddress = ref(undefined)
 let contract2
 //方法
-onMounted(async () => {
+onMounted(() => {
   try {
     loading.value = true
-    await connectSenderContract()
+    connectSenderContract()
     loading.value = false
-    connectReceiverContract()
   } catch (e) {
     loading.value = false
-    console.log('合约链接初始化错误：', e)
+    console.log(e)
   }
 })
 let clickFn = (index) => {
@@ -143,6 +131,7 @@ let connectSenderContract = async () => {
     active.value = 0
     //部署合约
     await deployContract('Deposit', 'RMB')
+    active.value = 2
   }
   //生成公钥
   await generatePublicKey(senderInstance, contract.target.toString(), senderSigner)
@@ -153,29 +142,16 @@ let deployContract = async (...args) => {
     EncryptedERC20.bytecode,
     senderSigner
   )
-  try {
-    contract = await contractFactory.deploy(...args)
-    try {
-      await contract.waitForDeployment()
-      processStatus.value = 'success'
-      // 保存到localStorage
-      localStorage.setItem('contract', JSON.stringify(contract))
-    } catch (error) {
-      active.value = 0
-      processStatus.value = 'error'
-      console.log('waitForDeployment:' + error)
-    }
-  } catch (error) {
-    active.value = 0
-    processStatus.value = 'error'
-    console.log('deployContractError:' + error)
-  }
+  contract = await contractFactory.deploy(...args)
+  await contract.waitForDeployment()
+  // 保存到localStorage
+  localStorage.setItem('contract', JSON.stringify(contract))
 }
 let mint = async (amount) => {
   minting.value = true
   const tx = await contract.mint(amount)
   await tx.wait()
-  totalSupply.value = await contract.totalSupply()
+  senderBalance.value = await contract.totalSupply()
   minting.value = false
   active.value = 3
 }
@@ -193,30 +169,17 @@ let deposit = async (amount, address) => {
   //查看接收者余额
   getReceiverBalance()
 }
-//链接接收者合约
-let connectReceiverContract = async () => {
+let getReceiverBalance = async () => {
   //接收者
-  // const mnemonic = Mnemonic.fromPhrase(
-  //   'guilt suit debris huge because glass skate clay review enforce hungry rescue'
-  // )
-  // receiverSigner = await HDNodeWallet.fromMnemonic(mnemonic).connect(provider)
-  const isKey = sessionStorage.getItem('keysInfo')
-  if (isKey) {
-    const keysInfo = JSON.parse(isKey)
-    receiverSigner = new Wallet(keysInfo.sk, provider)
-  } else {
-    const privateKey = 'dff417ab5c4f72ec787cfdb7fe16311591769af1c928e01f01b070cc68a227e5'
-    receiverSigner = new Wallet(privateKey, provider)
-  }
-  walletAddress.value = receiverSigner.address
-  transferForm.address = walletAddress.value
+  const mnemonic = Mnemonic.fromPhrase(
+    'guilt suit debris huge because glass skate clay review enforce hungry rescue'
+  )
+  receiverSigner = await HDNodeWallet.fromMnemonic(mnemonic).connect(provider)
   await init()
   receiverInstance = await createFhevmInstance(provider)
   contract2 = new Contract(contract.target, EncryptedERC20.abi, receiverSigner)
   //生成公钥
   await generatePublicKey(receiverInstance, contract.target.toString(), receiverSigner)
-}
-let getReceiverBalance = async () => {
   const token = receiverInstance.getPublicKey(contract2.target.toString())
   const balance = await contract2.balanceOf(receiverSigner, token?.publicKey, token?.signature)
   receiverBalance.value = receiverInstance.decrypt(contract2.target.toString(), balance)
