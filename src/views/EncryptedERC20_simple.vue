@@ -3,7 +3,7 @@
     <h1 style="margin: 10px 0 20px">区块链测试</h1>
     <el-container style="height: 600px; border: 1px solid #eee">
       <el-aside width="200px" style="padding: 10px; background-color: rgb(238 241 246)">
-        <el-steps direction="vertical" :active="active">
+        <el-steps direction="vertical" :process-status="processStatus" :active="active">
           <el-step title="部署合约" @click="clickFn(1)"></el-step>
           <el-step title="铸币" @click="clickFn(2)"></el-step>
           <el-step title="转账和查询" @click="clickFn(3)"></el-step>
@@ -12,13 +12,21 @@
       <el-container>
         <el-main>
           <!-- 合约部署 -->
-          <div v-show="active == 1" v-loading="loading" element-loading-text="合约部署中">
+          <div
+            v-show="active == 0 || active == 1"
+            v-loading="loading"
+            element-loading-text="合约部署中"
+          >
             <el-alert
-              v-show="!loading"
+              v-show="!loading && active == 1"
               title="发送者合约部署成功"
               type="success"
               :closable="false"
             />
+            <p style="margin: 20px 0">合约地址: {{ contractAddress }}</p>
+            <!-- 不再需要重新部署合约
+              <el-button type="primary" @click="deploy('Deposit', 'RMB')"> 重新部署合约 </el-button>
+            -->
           </div>
           <!-- 铸币 -->
           <div v-show="active == 2">
@@ -32,10 +40,11 @@
                 </el-button>
               </el-form-item>
             </el-form>
-            <p>发送者现存余额: {{ senderBalance }}</p>
+            <p>总供应量: {{ totalSupply }}</p>
           </div>
           <!-- 查询 -->
           <div v-show="active == 3">
+            <div style="margin: 20px 0">已连接钱包：{{ walletAddress }}</div>
             <el-row>
               <el-col :span="24">
                 <el-form inline label-width="80px" :model="transferForm">
@@ -68,22 +77,22 @@
 <script setup>
 import { ref, onMounted, reactive } from 'vue'
 import EncryptedERC20 from '../../contracts/EncryptedERC20.json'
-import { JsonRpcProvider, Mnemonic, HDNodeWallet, ContractFactory, Contract } from 'ethers'
-import { init, createFhevmInstance, generatePublicKey } from '@/utils/fhevmjs'
+import { Mnemonic, Wallet, HDNodeWallet } from 'ethers'
+import ContractInvoker from '@/utils/ContractInvoker'
 // Only Node requries Buffer module
 import { Buffer } from 'buffer'
 globalThis.Buffer = Buffer
-///////////////////////////////
+
 //常量
 const url = 'http://192.168.20.124:8545'
-const provider = new JsonRpcProvider(url)
 
+//变量
 let loading = ref(false)
 let active = ref(undefined)
+let processStatus = ref('process')
 //发送者
-let senderSigner
-let senderInstance
-let contract
+let senderInvoker
+let contractAddress = ref('')
 let minting = ref(false)
 let mintForm = reactive({
   amount: 1000
@@ -94,95 +103,118 @@ let transferForm = reactive({
   address: '0x864eAADAffc661fa46c2F11f9d937E9b8FEA25D0'
 })
 let transferring = ref(false)
+let totalSupply = ref(0)
 //接收者
-let receiverSigner
-let receiverInstance
+let receiverInvoker
 let receiverBalance = ref(0)
-let contract2
+let walletAddress = ref(undefined)
+
 //方法
-onMounted(() => {
+onMounted(async () => {
   try {
     loading.value = true
-    connectSenderContract()
+    await connectSenderContract()
     loading.value = false
   } catch (e) {
     loading.value = false
-    console.log(e)
+    console.log('合约链接初始化错误：', e)
   }
 })
 let clickFn = (index) => {
   active.value = index
 }
 let connectSenderContract = async () => {
-  //发送者
+  //发送者-初始化
   const mnemonic = Mnemonic.fromPhrase(
     'adapt mosquito move limb mobile illegal tree voyage juice mosquito burger raise father hope layer'
   )
-  senderSigner = await HDNodeWallet.fromMnemonic(mnemonic).connect(provider)
-  await init()
-  senderInstance = await createFhevmInstance(provider)
-  //判断是否部署合约
-  let contractAPI = localStorage.getItem('contract')
-  if (contractAPI !== null) {
-    let contractObj = JSON.parse(contractAPI)
-    contract = new Contract(contractObj.target, EncryptedERC20.abi, senderSigner)
-    active.value = 2
+  let senderSigner = await HDNodeWallet.fromMnemonic(mnemonic)
+  senderInvoker = new ContractInvoker(url, EncryptedERC20, senderSigner)
+  //接收者-初始化
+  let receiverSigner
+  const isKey = sessionStorage.getItem('keysInfo')
+  if (isKey) {
+    const keysInfo = JSON.parse(isKey)
+    receiverSigner = new Wallet(keysInfo.sk)
+  } else {
+    const privateKey = 'dff417ab5c4f72ec787cfdb7fe16311591769af1c928e01f01b070cc68a227e5'
+    receiverSigner = new Wallet(privateKey)
+  }
+  walletAddress.value = receiverSigner.address
+  transferForm.address = walletAddress.value
+  receiverInvoker = new ContractInvoker(url, EncryptedERC20, receiverSigner)
+  //判断是否需要部署合约
+  let contractAPI = localStorage.getItem('contractTarget')
+  if (contractAPI) {
+    senderInvoker.connect(contractAPI)
+    receiverInvoker.connect(contractAPI)
+    contractAddress.value = contractAPI
+    active.value = 1
   } else {
     active.value = 0
     //部署合约
-    await deployContract('Deposit', 'RMB')
-    active.value = 2
+    await deploy('Deposit', 'RMB')
   }
-  //生成公钥
-  await generatePublicKey(senderInstance, contract.target.toString(), senderSigner)
 }
-let deployContract = async (...args) => {
-  const contractFactory = new ContractFactory(
-    EncryptedERC20.abi,
-    EncryptedERC20.bytecode,
-    senderSigner
-  )
-  contract = await contractFactory.deploy(...args)
-  await contract.waitForDeployment()
-  // 保存到localStorage
-  localStorage.setItem('contract', JSON.stringify(contract))
+let deploy = async (...args) => {
+  try {
+    loading.value = true
+    await senderInvoker.deploy(...args)
+    contractAddress.value = senderInvoker.target
+    receiverInvoker.connect(contractAddress.value)
+    active.value = 1
+    // 保存到localStorage
+    localStorage.setItem('contractTarget', contractAddress.value)
+    loading.value = false
+  } catch (error) {
+    active.value = 0
+    processStatus.value = 'error'
+    loading.value = false
+    console.log('deployError:' + error)
+  }
 }
 let mint = async (amount) => {
   minting.value = true
-  const tx = await contract.mint(amount)
+  const tx = await senderInvoker.mint(amount)
   await tx.wait()
-  senderBalance.value = await contract.totalSupply()
+  totalSupply.value = await senderInvoker.totalSupply()
   minting.value = false
   active.value = 3
 }
 let deposit = async (amount, address) => {
   transferring.value = true
   amount = typeof amount === 'string' ? Number(amount) : amount
-  const eAmount = await senderInstance.encrypt64(amount)
-  const tx = await contract['transfer(address,bytes)'](address, eAmount)
+  const eAmount = await senderInvoker.encrypt64(amount)
+  /**
+   *  转账
+   *  abi中存在transfer(address,bytes)方法和transfer(address,uint256)方法
+   *  js中没有重载，所以需要使用['transfer(address,bytes)']来调用
+   */
+  const tx = await senderInvoker['transfer(address,bytes)'](address, eAmount)
   await tx.wait()
   transferring.value = false
   //获取发送者最新余额
-  const token = senderInstance.getPublicKey(contract.target.toString())
-  const balance = await contract.balanceOf(senderSigner, token?.publicKey, token?.signature)
-  senderBalance.value = senderInstance.decrypt(contract.target.toString(), balance)
+  getSenderBalance()
   //查看接收者余额
   getReceiverBalance()
 }
-let getReceiverBalance = async () => {
-  //接收者
-  const mnemonic = Mnemonic.fromPhrase(
-    'guilt suit debris huge because glass skate clay review enforce hungry rescue'
+//查询接收者余额
+let getSenderBalance = async () => {
+  const eBalance = await senderInvoker.balanceOf(
+    senderInvoker.signer,
+    senderInvoker.token.publicKey,
+    senderInvoker.token.signature
   )
-  receiverSigner = await HDNodeWallet.fromMnemonic(mnemonic).connect(provider)
-  await init()
-  receiverInstance = await createFhevmInstance(provider)
-  contract2 = new Contract(contract.target, EncryptedERC20.abi, receiverSigner)
-  //生成公钥
-  await generatePublicKey(receiverInstance, contract.target.toString(), receiverSigner)
-  const token = receiverInstance.getPublicKey(contract2.target.toString())
-  const balance = await contract2.balanceOf(receiverSigner, token?.publicKey, token?.signature)
-  receiverBalance.value = receiverInstance.decrypt(contract2.target.toString(), balance)
+  senderBalance.value = senderInvoker.decrypt(eBalance)
+}
+//查询接收者余额
+let getReceiverBalance = async () => {
+  const eBalance = await receiverInvoker.balanceOf(
+    receiverInvoker.signer,
+    receiverInvoker.token.publicKey,
+    receiverInvoker.token.signature
+  )
+  receiverBalance.value = receiverInvoker.decrypt(eBalance)
 }
 </script>
 

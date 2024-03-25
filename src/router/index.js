@@ -28,6 +28,11 @@ const router = createRouter({
       path: '/EncryptedERC20',
       name: 'EncryptedERC20',
       component: () => import('../views/EncryptedERC20.vue')
+    },
+    {
+      path: '/EncryptedERC20-simple',
+      name: 'EncryptedERC20Simple',
+      component: () => import('../views/EncryptedERC20_simple.vue')
     }
   ]
 })

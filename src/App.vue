@@ -10,6 +10,7 @@
         <RouterLink to="/web3">web3</RouterLink>
         <RouterLink to="/excelTable">excelTable</RouterLink>
         <RouterLink to="/EncryptedERC20">EncryptedERC20合约</RouterLink>
+        <RouterLink to="/EncryptedERC20-simple">EncryptedERC20合约-优化版</RouterLink>
       </nav>
     </div>
   </header>

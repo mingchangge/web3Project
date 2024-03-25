@@ -18,6 +18,7 @@
             element-loading-text="合约部署中"
           >
             <el-alert
+              style="margin-bottom: 20px"
               v-show="!loading && active == 1"
               title="发送者合约部署成功"
               type="success"
@@ -81,7 +82,7 @@ import { init, createFhevmInstance, generatePublicKey } from '@/utils/fhevmjs'
 // Only Node requries Buffer module
 import { Buffer } from 'buffer'
 globalThis.Buffer = Buffer
-///////////////////////////////
+
 //常量
 const url = 'http://192.168.20.124:8545'
 const provider = new JsonRpcProvider(url)
@@ -148,6 +149,7 @@ let connectSenderContract = async () => {
   await generatePublicKey(senderInstance, contract.target.toString(), senderSigner)
 }
 let deployContract = async (...args) => {
+  loading.value = true
   const contractFactory = new ContractFactory(
     EncryptedERC20.abi,
     EncryptedERC20.bytecode,
@@ -157,9 +159,9 @@ let deployContract = async (...args) => {
     contract = await contractFactory.deploy(...args)
     try {
       await contract.waitForDeployment()
-      processStatus.value = 'success'
       // 保存到localStorage
       localStorage.setItem('contract', JSON.stringify(contract))
+      loading.value = false
     } catch (error) {
       active.value = 0
       processStatus.value = 'error'
