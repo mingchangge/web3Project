@@ -11,6 +11,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@antv/g6": "^4.8.24",
     "axios": "^1.6.7",
     "buffer": "^6.0.3",
     "element-plus": "^2.5.6",

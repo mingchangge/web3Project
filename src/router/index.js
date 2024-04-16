@@ -33,6 +33,11 @@ const router = createRouter({
       path: '/EncryptedERC20-simple',
       name: 'EncryptedERC20Simple',
       component: () => import('../views/EncryptedERC20_simple.vue')
+    },
+    {
+      path: '/G6-Tree',
+      name: 'G6-Tree',
+      component: () => import('../views/G6-Tree.vue')
     }
   ]
 })
