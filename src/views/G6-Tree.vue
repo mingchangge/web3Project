@@ -64,7 +64,6 @@ G6.registerNode(
         width: bbox.width + (hasChildren ? 26 : 12),
         height: bbox.height + 12
       })
-      console.log('rect', rect.attr('width'), rect.attr('height'))
       text.attr({
         x: -bbox.width / 2,
         y: 0
@@ -114,8 +113,7 @@ const tooltip = new G6.Tooltip({
 G6.registerEdge(
   'cubic-horizontal-edge',
   {
-    afterDraw: (cfg, group) => {
-      console.log('cfg:', cfg, group)
+    afterDraw: (cfg) => {
       cfg.style = {
         stroke: '#A3B1BF',
         lineWidth: 1,
@@ -126,42 +124,6 @@ G6.registerEdge(
         }
       }
     },
-    // draw(cfg, group) {
-    //   const { startPoint, endPoint } = cfg
-    //   const b = this.getControlPoints(cfg)
-    //   console.log('b:', b, startPoint, endPoint)
-    //   const path = [
-    //     ['M', startPoint.x, startPoint.y],
-    //     ['Q', b[0].x, b[0].y, endPoint.x, endPoint.y]
-    //   ]
-    //   const shape = group.addShape('path', {
-    //     attrs: {
-    //       path: path,
-    //       stroke: '#A3B1BF',
-    //       lineWidth: 1,
-    //       endArrow: {
-    //         path: 'M 0,0 L 6,3 L 6,-3 Z',
-    //         fill: '#A3B1BF'
-    //       }
-    //     }
-    //   })
-    //   return shape
-    // },
-    // getControlPoints: cfg => {
-    //   // 指定controlPoints
-    //   let controlPoints = cfg.controlPoints
-    //   if (!controlPoints || !controlPoints.length) {
-    //     const { startPoint, endPoint } = cfg
-    //     const innerPoint = this.$G6.Util.getControlPoint(
-    //       startPoint,
-    //       endPoint,
-    //       0.5,
-    //       cfg.edgeOffset || 30
-    //     )
-    //     controlPoints = [innerPoint]
-    //   }
-    //   return controlPoints
-    // },
     update: undefined
   },
   'cubic-horizontal'
@@ -334,6 +296,315 @@ onMounted(() => {
       graph.changeSize(container.value.scrollWidth, container.value.scrollHeight)
     }
 })
+
+let obj = {
+  orderId: '2024041631920203289',
+  parent: '2024041631920203289',
+  owner: '0xb5975e8294cc49347669dcea994293a37705f22f',
+  portion: 50,
+  residue: 0,
+  unitPrice: '100',
+  listing: false,
+  childNum: 2,
+  depth: 0,
+  children: [
+    {
+      orderId: '2024041632106030793',
+      parent: '2024041631920203289',
+      owner: '0xFede7A00501B5fD1445c9a08Df8B6dB7C6Fb41a7',
+      portion: 30,
+      residue: 20,
+      unitPrice: 0,
+      listing: false,
+      childNum: 1,
+      depth: 0,
+      timestamp: 1713229767,
+      children: [
+        {
+          orderId: '2024041632954533412',
+          parent: '2024041632106030793',
+          owner: '0xf99b57EfcC50D5A12D53a56Be873D0c94911b1Cb',
+          portion: 10,
+          residue: 3,
+          unitPrice: 100,
+          listing: true,
+          childNum: 6,
+          depth: 1,
+          timestamp: 1713229767,
+          children: [
+            {
+              orderId: '2024041632998911076',
+              parent: '2024041632954533412',
+              owner: '0x61e09D7dB77066958f52F618cd229B97DD1B33b9',
+              portion: 2,
+              residue: 2,
+              unitPrice: 100,
+              listing: false,
+              childNum: 0,
+              depth: 2,
+              timestamp: 1713229812
+            },
+            {
+              orderId: '2024041642003351081',
+              parent: '2024041632954533412',
+              owner: '0xB5975e8294Cc49347669dcEa994293a37705F22f',
+              portion: 1,
+              residue: 1,
+              unitPrice: 100,
+              listing: false,
+              childNum: 0,
+              depth: 2,
+              timestamp: 1713238816
+            },
+            {
+              orderId: '2024041642097875792',
+              parent: '2024041632954533412',
+              owner: '0xB5975e8294Cc49347669dcEa994293a37705F22f',
+              portion: 1,
+              residue: 1,
+              unitPrice: 100,
+              listing: false,
+              childNum: 0,
+              depth: 2,
+              timestamp: 1713238917
+            },
+            {
+              orderId: '2024041642186824473',
+              parent: '2024041632954533412',
+              owner: '0xB5975e8294Cc49347669dcEa994293a37705F22f',
+              portion: 1,
+              residue: 1,
+              unitPrice: 100,
+              listing: false,
+              childNum: 0,
+              depth: 2,
+              timestamp: 1713239002
+            },
+            {
+              orderId: '2024041642231228808',
+              parent: '2024041632954533412',
+              owner: '0xB5975e8294Cc49347669dcEa994293a37705F22f',
+              portion: 1,
+              residue: 1,
+              unitPrice: 100,
+              listing: false,
+              childNum: 0,
+              depth: 2,
+              timestamp: 1713239047
+            },
+            {
+              orderId: '2024041643141808159',
+              parent: '2024041632954533412',
+              owner: '0xB5975e8294Cc49347669dcEa994293a37705F22f',
+              portion: 1,
+              residue: 0,
+              unitPrice: 100,
+              listing: false,
+              childNum: 1,
+              depth: 2,
+              timestamp: 1713239959,
+              children: [
+                {
+                  orderId: '2024041643186781712',
+                  parent: '2024041643141808159',
+                  owner: '0xB5975e8294Cc49347669dcEa994293a37705F22f',
+                  portion: 1,
+                  residue: 1,
+                  unitPrice: 100,
+                  listing: true,
+                  childNum: 0,
+                  depth: 3,
+                  timestamp: 1713239999
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      orderId: '2024041632159574669',
+      parent: '2024041631920203289',
+      owner: '0x3A5afa537379e1556734b15B10DF0f0abeD29bab',
+      portion: 20,
+      residue: 10,
+      unitPrice: 0,
+      listing: false,
+      childNum: 3,
+      depth: 0,
+      timestamp: 1713229646,
+      children: [
+        {
+          orderId: '2024041632833411912',
+          parent: '2024041632159574669',
+          owner: '0xf99b57EfcC50D5A12D53a56Be873D0c94911b1Cb',
+          portion: 2,
+          residue: 2,
+          unitPrice: 100,
+          listing: true,
+          childNum: 0,
+          depth: 1,
+          timestamp: 1713229646
+        },
+        {
+          orderId: '2024041632863327621',
+          parent: '2024041632159574669',
+          owner: '0xf99b57EfcC50D5A12D53a56Be873D0c94911b1Cb',
+          portion: 3,
+          residue: 2,
+          unitPrice: 100,
+          listing: true,
+          childNum: 1,
+          depth: 1,
+          timestamp: 1713229676,
+          children: [
+            {
+              orderId: '2024041633039690860',
+              parent: '2024041632863327621',
+              owner: '0x61e09D7dB77066958f52F618cd229B97DD1B33b9',
+              portion: 1,
+              residue: 0,
+              unitPrice: 100,
+              listing: false,
+              childNum: 1,
+              depth: 2,
+              timestamp: 1713229852,
+              children: [
+                {
+                  orderId: '2024041633112096527',
+                  parent: '2024041633039690860',
+                  owner: '0x61e09D7dB77066958f52F618cd229B97DD1B33b9',
+                  portion: 1,
+                  residue: 0,
+                  unitPrice: 100,
+                  listing: true,
+                  childNum: 1,
+                  depth: 3,
+                  timestamp: 1713229927,
+                  children: [
+                    {
+                      orderId: '2024041641931878699',
+                      parent: '2024041633112096527',
+                      owner: '0xB5975e8294Cc49347669dcEa994293a37705F22f',
+                      portion: 1,
+                      residue: 1,
+                      unitPrice: 100,
+                      listing: false,
+                      childNum: 0,
+                      depth: 4,
+                      timestamp: 1713238746
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          orderId: '2024041633249929378',
+          parent: '2024041632159574669',
+          owner: '0xf99b57EfcC50D5A12D53a56Be873D0c94911b1Cb',
+          portion: 5,
+          residue: 0,
+          unitPrice: 100,
+          listing: true,
+          childNum: 4,
+          depth: 1,
+          timestamp: 1713230062,
+          children: [
+            {
+              orderId: '2024041633322391267',
+              parent: '2024041633249929378',
+              owner: '0xFede7A00501B5fD1445c9a08Df8B6dB7C6Fb41a7',
+              portion: 1,
+              residue: 1,
+              unitPrice: 100,
+              listing: false,
+              childNum: 0,
+              depth: 2,
+              timestamp: 1713230137
+            },
+            {
+              orderId: '2024041633378757594',
+              parent: '2024041633249929378',
+              owner: '0xB5975e8294Cc49347669dcEa994293a37705F22f',
+              portion: 2,
+              residue: 2,
+              unitPrice: 100,
+              listing: false,
+              childNum: 0,
+              depth: 2,
+              timestamp: 1713230192
+            },
+            {
+              orderId: '2024041638610287790',
+              parent: '2024041633249929378',
+              owner: '0xB5975e8294Cc49347669dcEa994293a37705F22f',
+              portion: 1,
+              residue: 1,
+              unitPrice: 100,
+              listing: false,
+              childNum: 0,
+              depth: 2,
+              timestamp: 1713235425
+            },
+            {
+              orderId: '2024041641743315907',
+              parent: '2024041633249929378',
+              owner: '0xB5975e8294Cc49347669dcEa994293a37705F22f',
+              portion: 1,
+              residue: 1,
+              unitPrice: 100,
+              listing: false,
+              childNum: 0,
+              depth: 2,
+              timestamp: 1713238561
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  orderType: 1
+}
+/**
+ * 获取每一层（相同depth）的子节点数，找出最大的子节点数
+ * 方便计算树图的高度
+ * @param {Object} obj---树形结构对象
+ * @returns {Object} {depth: 0, num: 2}---depth: 0表示第0层，num: 2表示第0层的最大子节点数为2
+ */
+function getMaxChildrenNum(obj) {
+  let array = []
+  //获取相同每一层的子节点数，组合成一个对象
+  function getLevelNodeNum(obj) {
+    if (obj.children && obj.children.length > 0) {
+      for (let i = 0; i < obj.children.length; i++) {
+        getLevelNodeNum(obj.children[i])
+      }
+    }
+    //找出每一层的最大子节点数
+    if (array.filter((item) => item.depth === obj.depth).length === 0) {
+      array.push({ depth: obj.depth, num: 1 })
+    } else {
+      array.forEach((item) => {
+        if (item.depth === obj.depth) {
+          item.num += 1
+        }
+      })
+    }
+    return array
+  }
+  //给新对象赋值
+  let newArray = getLevelNodeNum(obj)
+  //数组排序---找出最大的子节点数
+  newArray.sort((a, b) => {
+    return b.num - a.num
+  })
+  //返回最大的子节点数对象---最大的子节点数为数组的第一个元素
+  return newArray[0]
+}
+let maxObj = getMaxChildrenNum(obj)
+console.log('maxObj:', maxObj, 'num:', maxObj.num)
 </script>
 
 <style>
